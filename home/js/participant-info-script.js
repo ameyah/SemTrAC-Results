@@ -132,6 +132,29 @@ function getPostStudyQuestionnaire(participant_id) {
     __makeAjaxRequest(options, responseSuccess, responseFailure);
 }
 
+function getWebsites(participant_id) {
+    var responseSuccess = function (data) {
+        console.log(data);
+        if (data.length > 0) {
+            var postStudyTable = $("#websites-data");
+            for(var i = 0; i < data.length; i++) {
+                newShowWebsiteRow(postStudyTable, data[i]);
+            }
+        }
+    };
+
+    var responseFailure = function () {
+
+    };
+
+    var options = {
+        type: "GET",
+        url: baseURI + "?get-websites=" + participant_id
+    };
+
+    __makeAjaxRequest(options, responseSuccess, responseFailure);
+}
+
 /**
  * End Ajax Calls for participant data
  */
@@ -172,6 +195,7 @@ function disableAllButtons() {
     $("#current-practice-questionnaire-btn").removeClass("active");
     $("#risk-perception-questionnaire-btn").removeClass("active");
     $("#post-study-questionnaire-btn").removeClass("active");
+    $("#show-websites-btn").removeClass("active");
 }
 
 function hideAllTables() {
@@ -179,6 +203,7 @@ function hideAllTables() {
     $("#passwords-table-group-website").css("display", "none");
     $("#pre-study-table").css("display", "none");
     $("#post-study-table").css("display", "none");
+    $("#websites-table").css("display", "none");
 }
 
 $(function () {
@@ -268,5 +293,14 @@ $(function () {
         hideAllTables();
         $(this).addClass("active");
         $("#post-study-table").css("display", "block");
+    });
+
+    $("#show-websites-btn").click(function() {
+        clearElementData($("#websites-data"));
+        getWebsites(formatted_participant_id);
+        disableAllButtons();
+        hideAllTables();
+        $(this).addClass("active");
+        $("#websites-table").css("display", "block");
     });
 });

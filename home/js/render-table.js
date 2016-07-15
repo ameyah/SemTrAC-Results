@@ -98,6 +98,30 @@ function newPostStudyRow(table, instance, website) {
  */
 
 
+
+/**
+ * Start creation of new row for show websites table
+ */
+function newShowWebsiteRow(table, instance) {
+    instance.website_important = instance.website_important? "Yes": "No";
+    instance.date = instance.date? instance.date: "";
+    instance.auth_status = instance.auth_status? "Yes": "No";
+    var addRow = "<tr>" +
+        "<td>" + instance.website_text + "</td>" +
+        "<td>" + instance.website_important + "</td>" +
+        "<td>" + instance.avg_importance + "</td>" +
+        "<td>" + instance.date + "</td>" +
+        "<td>" + instance.total_tries + "</td>" +
+        "<td>" + instance.auth_status + "</td></tr>";
+
+    table.append(addRow);
+}
+
+/**
+ * End creation of new row for post-study questionnaire table
+ */
+
+
 /**
  * Start table render group by password function
   */
