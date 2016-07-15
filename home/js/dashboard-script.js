@@ -3,8 +3,6 @@
  */
 
 
-var baseURI = "http://localhost:81/semtrac-results/api.php";
-
 function getStats() {
     var responseSuccess = function(data) {
         if(data.participants != undefined) {

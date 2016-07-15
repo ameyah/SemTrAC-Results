@@ -2,8 +2,6 @@
  * Created by Ameya on 7/13/2016.
  */
 
-var baseURI = "http://localhost:81/semtrac-results/api.php";
-
 var passwordDistance = [];
 var passwordDistanceAvg = [];
 var passwordGroupings = [];
