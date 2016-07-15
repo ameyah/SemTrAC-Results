@@ -1,6 +1,7 @@
 <?php
 
 include('conf.php');
+include('utils.php');
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
@@ -16,7 +17,7 @@ if(isset($_GET['getstats'])) {
     $result_obj['websites'] = intval($response[1]);
     $result_obj['credentials'] = intval($response[2]);
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 if(isset($_GET['getparticipants'])) {
@@ -43,7 +44,7 @@ if(isset($_GET['getparticipants'])) {
         );
         array_push($result_obj, $temp_result);
     }
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 if(isset($_GET['participant-info'])) {
@@ -71,7 +72,7 @@ if(isset($_GET['participant-info'])) {
         array_push($result_obj, $temp_result);
     }
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 
@@ -92,7 +93,7 @@ if(isset($_GET['get-pre-study'])) {
         array_push($result_obj, $temp_result);
     }
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 if(isset($_GET['get-current-practice'])) {
@@ -112,7 +113,7 @@ if(isset($_GET['get-current-practice'])) {
         array_push($result_obj, $temp_result);
     }
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 if(isset($_GET['get-risk-perception'])) {
@@ -132,7 +133,7 @@ if(isset($_GET['get-risk-perception'])) {
         array_push($result_obj, $temp_result);
     }
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
 
 if(isset($_GET['get-post-study'])) {
@@ -179,5 +180,5 @@ if(isset($_GET['get-post-study'])) {
         array_push($result_obj, $temp_result);
     }
 
-    echo json_encode($result_obj);
+    echo json_encode(utf8ize($result_obj));
 }
