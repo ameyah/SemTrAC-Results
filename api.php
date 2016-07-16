@@ -53,9 +53,9 @@ if(isset($_GET['participant-info'])) {
     preg_match_all('/\d+/', $pwset_id, $matches);
     $pwset_id = $matches[0][0];
     $query = "SELECT (SELECT website_text FROM websites WHERE website_id = user_websites.website_id) as website_text,
-            user_websites.website_probability, user_websites.password_reset_count, transformed_credentials.username_text,
-            transformed_credentials.password_text, grammar.grammar_text, transformed_credentials.auth_status FROM
-            user_websites INNER JOIN transformed_credentials ON user_websites.user_website_id =
+            user_websites.website_probability, user_websites.password_reset_count, transformed_credentials.transformed_cred_id,
+            transformed_credentials.username_text, transformed_credentials.password_text, grammar.grammar_text,
+            transformed_credentials.auth_status FROM user_websites INNER JOIN transformed_credentials ON user_websites.user_website_id =
             transformed_credentials.user_website_id JOIN grammar ON transformed_credentials.password_grammar_id =
             grammar.grammar_id WHERE user_websites.pwset_id = ". trim($pwset_id) . " ORDER BY user_websites.website_id";
     $result = mysqli_query($dbc, $query);
@@ -66,9 +66,29 @@ if(isset($_GET['participant-info'])) {
             'password_reset_count' => intval($response_row['password_reset_count']),
             'username_text' => $response_row['username_text'],
             'password_text' => $response_row['password_text'],
-            'grammar_text' => $response_row['grammar_text'],
+            'password_segments' => Array(),
             'auth_status' => intval($response_row['auth_status'])
         );
+        // Extract grammar and store individual segment grammar in array
+        preg_match_all('/\([a-z]+[0-9]*\)/i', $response_row['grammar_text'], $grammar_arr);
+        for($i = 0; $i < count($grammar_arr); $i++) {
+            $grammar_arr[$i] = preg_replace("/[^a-zA-Z0-9]+/", "", $grammar_arr[$i]);
+        }
+        // Get transformed segments from transformed_cred_id
+        $get_segments_query = "SELECT segment, capital, special FROM transformed_segments WHERE transformed_cred_id = "
+            .trim($response_row['transformed_cred_id']);
+        $result_segments = mysqli_query($dbc, $get_segments_query);
+        $segment_grammar_count = 0;
+        while($segment_row = mysqli_fetch_array($result_segments)) {
+            $segment_info = Array(
+                'segment' => $segment_row['segment'],
+                'grammar' => $grammar_arr[0][$segment_grammar_count],
+                'capital' => $segment_row['capital'],
+                'special' => $segment_row['special']
+            );
+            array_push($temp_result['password_segments'], $segment_info);
+            $segment_grammar_count++;
+        }
         array_push($result_obj, $temp_result);
     }
 

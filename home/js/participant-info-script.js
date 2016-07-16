@@ -10,6 +10,7 @@ var participant_info;
 
 var groupByPasswordTableFlag = false;
 var groupByWebsiteTableFlag = false;
+var passwordsModified = false;
 
 
 /**

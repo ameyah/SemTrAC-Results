@@ -21,8 +21,8 @@ function newWebsiteRow(table, instance, groupIndex) {
             }
             var auth_status = instance.auth_status[passwordIndex]? "Yes": "No";
             addRow += "<td>" + instance.transformed_username[passwordIndex] + "</td><td>" +
-                instance.transformed_password[passwordIndex] + "</td><td>" + instance.password_grammar[passwordIndex] +
-                "</td><td>" + auth_status + "</td></tr>";
+                instance.transformed_password[passwordIndex].split(/\$\$\d+\$\$/)[0] + "</td><td>" +
+                displayPasswordGrammar(instance.password_segments[passwordIndex]) + "</td><td>" + auth_status + "</td></tr>";
         }
 
     }
@@ -33,28 +33,64 @@ function newWebsiteRow(table, instance, groupIndex) {
  * End creation of new row for group by website table
  */
 
+/**
+ * Start Display Password Grammar for Group by Websites table
+ */
+
+function displayPasswordGrammar(passwordSegments) {
+    var displayStr = "";
+    for(var i = 0; i < passwordSegments.length; i++) {
+        displayStr += "(" + passwordSegments[i].grammar + ")";
+    }
+    return displayStr;
+}
+
+/**
+ * End Display Password Grammar for Group by Websites table
+ */
+
 
 /**
  * Start creation of new row for group by password table
  */
 function newPasswordRow(table, instance) {
     var addRow = "<tr>" +
-        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password + "</td>" +
-        "<td rowspan=" + instance.password_count + ">" + instance.password_grammar + "</td>";
+        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password.split(/\$\$\d+\$\$/)[0] + "</td>" +
+        "<td rowspan=" + instance.password_count + ">" + displayPasswordSegments(instance.password_segments) + "</td>";
     // add details for the same password
     for (var i = 0; i < instance.password_count; i++) {
         if (i != 0) {
             addRow += "<tr>";
         }
         addRow += "<td>" + instance.transformed_username[i] + "</td><td>" + instance.url[i] + "</td>" +
-            "<td>" + instance.website_importance[i] + "</td><td>" + instance.reset_count[i] + "</td>" +
-            "<td>" + instance.auth_status[i] + "</td></tr>";
+        "<td>" + instance.website_importance[i] + "</td><td>" + instance.reset_count[i] + "</td>" +
+        "<td>" + instance.auth_status[i] + "</td></tr>";
     }
     table.append(addRow);
 }
 
 /**
  * End creation of new row for group by password table
+ */
+
+/**
+ * Start Display Password Segments for Group by Passwords table
+ */
+
+function displayPasswordSegments(passwordSegments) {
+    var displayStr = "";
+    for(var i = 0; i < passwordSegments.length; i++) {
+        displayStr += "(" + passwordSegments[i].segment + " - " + passwordSegments[i].grammar;
+        if((passwordSegments[i].grammar.indexOf("number") == -1) && passwordSegments[i].grammar.indexOf("special") == -1) {
+            displayStr += ", " + passwordSegments[i].capital + ", " + passwordSegments[i].special;
+        }
+        displayStr += ")<br/>";
+    }
+    return displayStr;
+}
+
+/**
+ * End Display Password Segments for Group by Passwords table
  */
 
 /**
@@ -124,10 +160,16 @@ function newShowWebsiteRow(table, instance) {
 
 /**
  * Start table render group by password function
-  */
+ */
 
 function resultGroupByPassword(oldResult) {
     var result = [];
+
+    //modify passwords temporarily to detect unique passwords considering capital and special char information
+    if(!passwordsModified) {
+        oldResult = modifyPasswordsTemp(oldResult);
+        passwordsModified = true;
+    }
     var foundFlag = false;
     for (var i = 0; i < oldResult.length; i++) {
         foundFlag = false;
@@ -173,7 +215,7 @@ function resultGroupByPassword(oldResult) {
                 reset_count: [oldResult[i].password_reset_count],
                 transformed_username: [oldResult[i].username_text],
                 transformed_password: oldResult[i].password_text,
-                password_grammar: oldResult[i].grammar_text,
+                password_segments: oldResult[i].password_segments,
                 auth_status: [parseInt(oldResult[i].auth_status) ? "Yes" : "No"],
                 password_count: 1
             };
@@ -270,7 +312,7 @@ function resultGroupByWebsite(oldResult) {
             // add password of this object to corresponding result object
             result[result.length - 1].transformed_password.push(oldResult[i].password_text);
             // add password grammar of this object to corresponding result object
-            result[result.length - 1].password_grammar.push(oldResult[i].grammar_text);
+            result[result.length - 1].password_segments.push(oldResult[i].password_segments);
             // add auth status of this object to corresponding result object
             result[result.length - 1].auth_status.push(oldResult[i].auth_status);
         } else {
@@ -281,7 +323,7 @@ function resultGroupByWebsite(oldResult) {
                 reset_count: oldResult[i].password_reset_count,
                 transformed_username: [oldResult[i].username_text],
                 transformed_password: [oldResult[i].password_text],
-                password_grammar: [oldResult[i].grammar_text],
+                password_segments: [oldResult[i].password_segments],
                 auth_status: [oldResult[i].auth_status]
             };
             result.push(passwordObj);
