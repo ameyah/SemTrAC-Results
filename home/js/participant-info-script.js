@@ -156,6 +156,28 @@ function getWebsites(participant_id) {
     __makeAjaxRequest(options, responseSuccess, responseFailure);
 }
 
+function getDiscussion(participant_id) {
+    var responseSuccess = function (data) {
+        if (data.length > 0) {
+            var discussionTable = $("#discussion-data");
+            for(var i = 0; i < data.length; i++) {
+                newShowDiscussionRow(discussionTable, data[i]);
+            }
+        }
+    };
+
+    var responseFailure = function () {
+
+    };
+
+    var options = {
+        type: "GET",
+        url: baseURI + "?get-discussion=" + participant_id
+    };
+
+    __makeAjaxRequest(options, responseSuccess, responseFailure);
+}
+
 /**
  * End Ajax Calls for participant data
  */
@@ -197,6 +219,7 @@ function disableAllButtons() {
     $("#risk-perception-questionnaire-btn").removeClass("active");
     $("#post-study-questionnaire-btn").removeClass("active");
     $("#show-websites-btn").removeClass("active");
+    $("#show-discussion-btn").removeClass("active");
 }
 
 function hideAllTables() {
@@ -205,6 +228,7 @@ function hideAllTables() {
     $("#pre-study-table").css("display", "none");
     $("#post-study-table").css("display", "none");
     $("#websites-table").css("display", "none");
+    $("#discussion-table").css("display", "none");
 }
 
 $(function () {
@@ -303,5 +327,14 @@ $(function () {
         hideAllTables();
         $(this).addClass("active");
         $("#websites-table").css("display", "block");
+    });
+
+    $("#show-discussion-btn").click(function() {
+        clearElementData($("#discussion-data"));
+        getDiscussion(formatted_participant_id);
+        disableAllButtons();
+        hideAllTables();
+        $(this).addClass("active");
+        $("#discussion-table").css("display", "block");
     });
 });

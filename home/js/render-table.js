@@ -154,7 +154,23 @@ function newShowWebsiteRow(table, instance) {
 }
 
 /**
- * End creation of new row for post-study questionnaire table
+ * End creation of new row for show websites table
+ */
+
+
+/**
+ * Start creation of new row for show discussion table
+ */
+function newShowDiscussionRow(table, instance) {
+    var addRow = "<tr>" +
+        "<td>" + instance.question + "</td>" +
+        "<td>" + instance.response + "</td></tr>";
+
+    table.append(addRow);
+}
+
+/**
+ * End creation of new row for show discussion table
  */
 
 

@@ -228,3 +228,23 @@ if(isset($_GET['get-websites'])) {
 
     echo json_encode(utf8ize($result_obj));
 }
+
+if(isset($_GET['get-discussion'])) {
+    $result_obj = Array();
+    $pwset_id = mysqli_real_escape_string($dbc, $_GET['get-discussion']);
+    preg_match_all('/\d+/', $pwset_id, $matches);
+    $pwset_id = $matches[0][0];
+    $query = "SELECT study_questions.question, study_responses.response_sub FROM study_responses INNER JOIN study_questions ON
+              study_responses.question_id = study_questions.question_id WHERE study_responses.pwset_id = ".trim($pwset_id) .
+              " AND study_questions.type = 'DISCUSS'";
+    $result = mysqli_query($dbc, $query);
+    while($response_row = mysqli_fetch_array($result)) {
+        $temp_result = Array(
+            'question' => $response_row['question'],
+            'response' => $response_row['response_sub']
+        );
+        array_push($result_obj, $temp_result);
+    }
+
+    echo json_encode(utf8ize($result_obj));
+}
