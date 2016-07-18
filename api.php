@@ -55,9 +55,10 @@ if(isset($_GET['participant-info'])) {
     $query = "SELECT (SELECT website_text FROM websites WHERE website_id = user_websites.website_id) as website_text,
             user_websites.website_probability, user_websites.password_reset_count, transformed_credentials.transformed_cred_id,
             transformed_credentials.username_text, transformed_credentials.password_text, grammar.grammar_text,
-            transformed_credentials.auth_status FROM user_websites INNER JOIN transformed_credentials ON user_websites.user_website_id =
-            transformed_credentials.user_website_id JOIN grammar ON transformed_credentials.password_grammar_id =
-            grammar.grammar_id WHERE user_websites.pwset_id = ". trim($pwset_id) . " ORDER BY user_websites.website_id";
+            transformed_credentials.password_strength, transformed_credentials.auth_status FROM user_websites INNER JOIN
+            transformed_credentials ON user_websites.user_website_id = transformed_credentials.user_website_id JOIN grammar
+            ON transformed_credentials.password_grammar_id = grammar.grammar_id WHERE user_websites.pwset_id = ".
+            trim($pwset_id) . " ORDER BY user_websites.website_id";
     $result = mysqli_query($dbc, $query);
     while($response_row = mysqli_fetch_array($result)) {
         $temp_result = Array(
@@ -66,6 +67,7 @@ if(isset($_GET['participant-info'])) {
             'password_reset_count' => intval($response_row['password_reset_count']),
             'username_text' => $response_row['username_text'],
             'password_text' => $response_row['password_text'],
+            'password_strength' => $response_row['password_strength'],
             'password_segments' => Array(),
             'auth_status' => intval($response_row['auth_status'])
         );

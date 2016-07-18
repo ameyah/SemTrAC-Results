@@ -22,7 +22,8 @@ function newWebsiteRow(table, instance, groupIndex) {
             var auth_status = instance.auth_status[passwordIndex]? "Yes": "No";
             addRow += "<td>" + instance.transformed_username[passwordIndex].replace(/</, "&lt;").replace(/>/, "&gt;") + "</td><td>" +
                 instance.transformed_password[passwordIndex].split(/\$\$\d+\$\$/)[0].replace(/</, "&lt;").replace(/>/, "&gt;") + "</td><td>" +
-                displayPasswordGrammar(instance.password_segments[passwordIndex]) + "</td><td>" + auth_status + "</td></tr>";
+                displayPasswordGrammar(instance.password_segments[passwordIndex]) + "</td>" +
+                "<td>" + parseFloat(instance.password_strength).toFixed(2) + "</td><td>" + auth_status + "</td></tr>";
         }
 
     }
@@ -55,8 +56,9 @@ function displayPasswordGrammar(passwordSegments) {
  */
 function newPasswordRow(table, instance) {
     var addRow = "<tr>" +
-        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password.split(/\$\$\d+\$\$/)[0].replace(/</, "&lt;").replace(/>/, "&gt;")
-        + "</td><td rowspan=" + instance.password_count + ">" + displayPasswordSegments(instance.password_segments) + "</td>";
+        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password.split(/\$\$\d+\$\$/)[0].replace(/</, "&lt;").replace(/>/, "&gt;") +
+        "</td><td rowspan=" + instance.password_count + ">" + displayPasswordSegments(instance.password_segments) + "</td>" +
+        "<td rowspan=" + instance.password_count + ">" + parseFloat(instance.password_strength).toFixed(2) + "</td>";
     // add details for the same password
     for (var i = 0; i < instance.password_count; i++) {
         if (i != 0) {
@@ -231,6 +233,7 @@ function resultGroupByPassword(oldResult) {
                 reset_count: [oldResult[i].password_reset_count],
                 transformed_username: [oldResult[i].username_text],
                 transformed_password: oldResult[i].password_text,
+                password_strength: oldResult[i].password_strength,
                 password_segments: oldResult[i].password_segments,
                 auth_status: [parseInt(oldResult[i].auth_status) ? "Yes" : "No"],
                 password_count: 1
@@ -342,6 +345,7 @@ function resultGroupByWebsite(oldResult) {
                 reset_count: oldResult[i].password_reset_count,
                 transformed_username: [oldResult[i].username_text],
                 transformed_password: [oldResult[i].password_text],
+                password_strength: [oldResult[i].password_strength],
                 password_segments: [oldResult[i].password_segments],
                 auth_status: [oldResult[i].auth_status]
             };
