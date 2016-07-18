@@ -20,8 +20,8 @@ function newWebsiteRow(table, instance, groupIndex) {
                 addRow += "<tr>";
             }
             var auth_status = instance.auth_status[passwordIndex]? "Yes": "No";
-            addRow += "<td>" + instance.transformed_username[passwordIndex] + "</td><td>" +
-                instance.transformed_password[passwordIndex].split(/\$\$\d+\$\$/)[0] + "</td><td>" +
+            addRow += "<td>" + instance.transformed_username[passwordIndex].replace(/</, "&lt;").replace(/>/, "&gt;") + "</td><td>" +
+                instance.transformed_password[passwordIndex].split(/\$\$\d+\$\$/)[0].replace(/</, "&lt;").replace(/>/, "&gt;") + "</td><td>" +
                 displayPasswordGrammar(instance.password_segments[passwordIndex]) + "</td><td>" + auth_status + "</td></tr>";
         }
 
@@ -55,15 +55,15 @@ function displayPasswordGrammar(passwordSegments) {
  */
 function newPasswordRow(table, instance) {
     var addRow = "<tr>" +
-        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password.split(/\$\$\d+\$\$/)[0] + "</td>" +
-        "<td rowspan=" + instance.password_count + ">" + displayPasswordSegments(instance.password_segments) + "</td>";
+        "<td rowspan=" + instance.password_count + ">" + instance.transformed_password.split(/\$\$\d+\$\$/)[0].replace(/</, "&lt;").replace(/>/, "&gt;")
+        + "</td><td rowspan=" + instance.password_count + ">" + displayPasswordSegments(instance.password_segments) + "</td>";
     // add details for the same password
     for (var i = 0; i < instance.password_count; i++) {
         if (i != 0) {
             addRow += "<tr>";
         }
-        addRow += "<td>" + instance.transformed_username[i] + "</td><td>" + instance.url[i] + "</td>" +
-        "<td>" + instance.website_importance[i] + "</td><td>" + instance.reset_count[i] + "</td>" +
+        addRow += "<td>" + instance.transformed_username[i].replace(/</, "&lt;").replace(/>/, "&gt;") + "</td><td>" +
+        instance.url[i] + "</td><td>" + instance.website_importance[i] + "</td><td>" + instance.reset_count[i] + "</td>" +
         "<td>" + instance.auth_status[i] + "</td></tr>";
     }
     table.append(addRow);
@@ -80,7 +80,7 @@ function newPasswordRow(table, instance) {
 function displayPasswordSegments(passwordSegments) {
     var displayStr = "";
     for(var i = 0; i < passwordSegments.length; i++) {
-        displayStr += "(" + passwordSegments[i].segment + " - " + passwordSegments[i].grammar;
+        displayStr += "(" + passwordSegments[i].segment.replace(/</, "&lt;").replace(/>/, "&gt;") + " - " + passwordSegments[i].grammar;
         if((passwordSegments[i].grammar.indexOf("number") == -1) && passwordSegments[i].grammar.indexOf("special") == -1) {
             displayStr += ", " + passwordSegments[i].capital + ", " + passwordSegments[i].special;
         }
@@ -251,6 +251,8 @@ function resultGroupByPassword(oldResult) {
             startIndex: 0,
             endIndex: 0
         };
+        // sort transformed_usernames alphabetically
+        result[i].transformed_username = result[i].transformed_username.sort();
         for (var j = 0; j < result[i].transformed_username.length; j++) {
             var current_username = result[i].transformed_username[j];
             var next_username = result[i].transformed_username[j + 1];
@@ -273,6 +275,7 @@ function resultGroupByPassword(oldResult) {
                 distanceGroups.push(similarityIndex);
             }
         }
+        console.log(distanceGroups);
         var tempResultTransformedUsernames = {
             url: [],
             website_importance: [],
