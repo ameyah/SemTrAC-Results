@@ -258,146 +258,8 @@ function resultGroupByPassword(oldResult) {
     result = result.sort(function (a, b) {
         return a.password_count - b.password_count;
     });
-
-    passwordDistance = [];
-    passwordGroupings = [];
-    for (i = 0; i < result.length; i++) {
-        if (passwordDistance[i] == undefined) {
-            passwordDistance[i] = [];
-            passwordGroupings[i] = [];
-        }
-        for (var j = 0; j < result[i].transformed_username.length; j++) {
-            if (passwordDistance[i][j] == undefined) {
-                passwordDistance[i][j] = [];
-            }
-            var passwordDistanceAvg = 0;
-            for (var k = j + 1; k < result[i].transformed_username.length; k++) {
-                var distArray = levenshteinenator(result[i].transformed_username[j].split("@")[0], result[i].transformed_username[k].split("@")[0]);
-                var dist = distArray[distArray.length - 1][distArray[distArray.length - 1].length - 1];
-                if (passwordDistance[i][j][k] == undefined) {
-                    passwordDistance[i][j][k] = [];
-                }
-                passwordDistance[i][j][k] = dist;
-                passwordDistanceAvg += dist;
-            }
-            passwordDistanceAvg /= (k - j - 1);
-            if (result[i].transformed_username.length == 1) {
-                passwordGroupings[i].push([0]);
-            } else {
-                for (k = j + 1; k < result[i].transformed_username.length; k++) {
-                    var currentPasswordDistance = passwordDistance[i][j][k];
-                    if (currentPasswordDistance <= passwordDistanceAvg) {
-                        var jGroup = getPasswordGroup(passwordGroupings[i], j);
-                        var kGroup = getPasswordGroup(passwordGroupings[i], k);
-                        if (jGroup == null || kGroup == null) {
-                            if (jGroup == null && kGroup == null) {
-                                passwordGroupings[i].push([j, k]);
-                            } else if (jGroup == null) {
-                                //Insert j into kGroup
-                                passwordGroupings[i][kGroup].push(j);
-                            } else {
-                                //Insert k into jGroup
-                                passwordGroupings[i][jGroup].push(k);
-                            }
-                        } else {
-                            if (jGroup != kGroup) {
-                                var jGroupMinDistance = getMinimumDistance(passwordDistance[i], passwordGroupings[i][jGroup], j);
-                                var kGroupMinDistance = getMinimumDistance(passwordDistance[i], passwordGroupings[i][kGroup], k);
-                                if (jGroupMinDistance >= currentPasswordDistance || kGroupMinDistance >= currentPasswordDistance) {
-                                    if (jGroupMinDistance >= currentPasswordDistance && kGroupMinDistance >= currentPasswordDistance) {
-                                        passwordGroupings[i][jGroup] = removeFromPasswordGroup(passwordGroupings[i][jGroup], j);
-                                        passwordGroupings[i][kGroup] = removeFromPasswordGroup(passwordGroupings[i][kGroup], k);
-                                        passwordGroupings[i].push([j, k]);
-                                    } else {
-                                        if (jGroupMinDistance <= currentPasswordDistance) {
-                                            //Add k to jGroup
-                                            passwordGroupings[i][kGroup] = removeFromPasswordGroup(passwordGroupings[i][kGroup], k);
-                                            passwordGroupings[i][jGroup] = addToPasswordGroup(passwordGroupings[i][jGroup], k);
-                                        } else {
-                                            //Add j to kGroup
-                                            passwordGroupings[i][jGroup] = removeFromPasswordGroup(passwordGroupings[i][jGroup], j);
-                                            passwordGroupings[i][kGroup] = addToPasswordGroup(passwordGroupings[i][kGroup], j);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    //sort result as per password count
-    /*result = result.sort(function (a, b) {
-        return a.password_count - b.password_count;
-    });
-
-    // Re-order usernames as per maximum similarity
-    for (var i = 0; i < result.length; i++) {
-        var distanceGroups = [];
-        var similarityIndex = {
-            startIndex: 0,
-            endIndex: 0
-        };
-        for (var j = 0; j < result[i].transformed_username.length; j++) {
-            var current_username = result[i].transformed_username[j];
-            var next_username = result[i].transformed_username[j + 1];
-            if (next_username != undefined && current_username != undefined) {
-                current_username = result[i].transformed_username[j].split("@")[0];
-                next_username = result[i].transformed_username[j + 1].split("@")[0];
-                var distArray = levenshteinenator(current_username, next_username);
-                var dist = distArray[distArray.length - 1][distArray[distArray.length - 1].length - 1];
-                if (dist <= 5) {
-                    similarityIndex.endIndex = j + 1;
-                } else {
-                    distanceGroups.push(similarityIndex);
-                    similarityIndex = {
-                        startIndex: j + 1,
-                        endIndex: j + 1
-                    };
-                }
-            } else {
-                similarityIndex.endIndex = j;
-                distanceGroups.push(similarityIndex);
-            }
-        }
-        console.log(distanceGroups);
-        var tempResultTransformedUsernames = {
-            url: [],
-            website_importance: [],
-            reset_count: [],
-            transformed_username: [],
-            auth_status: []
-        };
-        while (distanceGroups.length > 0) {
-            var maxSimilarityGroup = {
-                startIndex: 0,
-                endIndex: 0
-            };
-            var maxSimilarityGroupIndex;
-            for (j = 0; j < distanceGroups.length; j++) {
-                var maxSimilarity = maxSimilarityGroup.endIndex - maxSimilarityGroup.startIndex;
-                if ((distanceGroups[j].endIndex - distanceGroups[j].startIndex) >= maxSimilarity) {
-                    maxSimilarityGroup = distanceGroups[j];
-                    maxSimilarityGroupIndex = j;
-                }
-            }
-            distanceGroups.splice(maxSimilarityGroupIndex, 1);
-            for (j = maxSimilarityGroup.startIndex; j <= maxSimilarityGroup.endIndex; j++) {
-                tempResultTransformedUsernames.url.push(result[i].url[j]);
-                tempResultTransformedUsernames.website_importance.push(result[i].website_importance[j]);
-                tempResultTransformedUsernames.reset_count.push(result[i].reset_count[j]);
-                tempResultTransformedUsernames.transformed_username.push(result[i].transformed_username[j]);
-                tempResultTransformedUsernames.auth_status.push(result[i].auth_status[j]);
-            }
-        }
-        result[i].url = tempResultTransformedUsernames.url;
-        result[i].website_importance = tempResultTransformedUsernames.website_importance;
-        result[i].reset_count = tempResultTransformedUsernames.reset_count;
-        result[i].transformed_username = tempResultTransformedUsernames.transformed_username;
-        result[i].auth_status = tempResultTransformedUsernames.auth_status;
-    }*/
+    //Calculate levenshtein distance and group usernames as per their similarity for each password
+    groupElements(result, 'transformed_username', '@');
     return result;
 }
 /**
@@ -438,126 +300,86 @@ function resultGroupByWebsite(oldResult) {
         }
     }
     //Calculate levenshtein distance and group passwords as per their similarity for each website
-    passwordDistance = [];
-    passwordGroupings = [];
-    for (i = 0; i < result.length; i++) {
-        if (passwordDistance[i] == undefined) {
-            passwordDistance[i] = [];
-            passwordGroupings[i] = [];
-        }
-        for (var j = 0; j < result[i].transformed_password.length; j++) {
-            if (passwordDistance[i][j] == undefined) {
-                passwordDistance[i][j] = [];
-            }
-            var passwordDistanceAvg = 0;
-            for (var k = j + 1; k < result[i].transformed_password.length; k++) {
-                var distArray = levenshteinenator(result[i].transformed_password[j], result[i].transformed_password[k]);
-                var dist = distArray[distArray.length - 1][distArray[distArray.length - 1].length - 1];
-                if (passwordDistance[i][j][k] == undefined) {
-                    passwordDistance[i][j][k] = [];
-                }
-                passwordDistance[i][j][k] = dist;
-                passwordDistanceAvg += dist;
-            }
-            passwordDistanceAvg /= (k - j - 1);
-            if (result[i].transformed_password.length == 1) {
-                passwordGroupings[i].push([0]);
-            } else {
-                for (k = j + 1; k < result[i].transformed_password.length; k++) {
-                    var currentPasswordDistance = passwordDistance[i][j][k];
-                    if (currentPasswordDistance <= passwordDistanceAvg) {
-                        var jGroup = getPasswordGroup(passwordGroupings[i], j);
-                        var kGroup = getPasswordGroup(passwordGroupings[i], k);
-                        if (jGroup == null || kGroup == null) {
-                            if (jGroup == null && kGroup == null) {
-                                passwordGroupings[i].push([j, k]);
-                            } else if (jGroup == null) {
-                                //Insert j into kGroup
-                                passwordGroupings[i][kGroup].push(j);
-                            } else {
-                                //Insert k into jGroup
-                                passwordGroupings[i][jGroup].push(k);
-                            }
-                        } else {
-                            if (jGroup != kGroup) {
-                                var jGroupMinDistance = getMinimumDistance(passwordDistance[i], passwordGroupings[i][jGroup], j);
-                                var kGroupMinDistance = getMinimumDistance(passwordDistance[i], passwordGroupings[i][kGroup], k);
-                                if (jGroupMinDistance >= currentPasswordDistance || kGroupMinDistance >= currentPasswordDistance) {
-                                    if (jGroupMinDistance >= currentPasswordDistance && kGroupMinDistance >= currentPasswordDistance) {
-                                        passwordGroupings[i][jGroup] = removeFromPasswordGroup(passwordGroupings[i][jGroup], j);
-                                        passwordGroupings[i][kGroup] = removeFromPasswordGroup(passwordGroupings[i][kGroup], k);
-                                        passwordGroupings[i].push([j, k]);
-                                    } else {
-                                        if (jGroupMinDistance <= currentPasswordDistance) {
-                                            //Add k to jGroup
-                                            passwordGroupings[i][kGroup] = removeFromPasswordGroup(passwordGroupings[i][kGroup], k);
-                                            passwordGroupings[i][jGroup] = addToPasswordGroup(passwordGroupings[i][jGroup], k);
-                                        } else {
-                                            //Add j to kGroup
-                                            passwordGroupings[i][jGroup] = removeFromPasswordGroup(passwordGroupings[i][jGroup], j);
-                                            passwordGroupings[i][kGroup] = addToPasswordGroup(passwordGroupings[i][kGroup], j);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    groupElements(result, 'transformed_password');
     return result;
-}
-
-
-function getPasswordGroup(passwordGroup, key) {
-    for (var i = 0; i < passwordGroup.length; i++) {
-        if ($.inArray(key, passwordGroup[i]) > -1) {
-            return i;
-        }
-    }
-    return null;
-}
-
-function getMinimumDistance(passwordDistance, passwordGroup, key) {
-    var minDist = 999;
-    for (var i = 0; i < passwordGroup.length; i++) {
-        if (key != passwordGroup[i]) {
-            if (passwordDistance[key] != undefined) {
-                if (passwordDistance[key][passwordGroup[i]] != undefined) {
-                    if (passwordDistance[key][passwordGroup[i]] < minDist) {
-                        minDist = passwordDistance[key][passwordGroup[i]];
-                    }
-                } else {
-                    if (passwordDistance[passwordGroup[i]] != undefined) {
-                        if (passwordDistance[passwordGroup[i]][key] < minDist) {
-                            minDist = passwordDistance[passwordGroup[i]][key];
-                        }
-                    }
-                }
-            } else if (passwordDistance[passwordGroup[i]] != undefined) {
-                if (passwordDistance[passwordGroup[i]][key] < minDist) {
-                    minDist = passwordDistance[passwordGroup[i]][key];
-                }
-            }
-        }
-    }
-    return minDist;
-}
-
-function removeFromPasswordGroup(passwordGroup, key) {
-    var index = passwordGroup.indexOf(key);
-    if (index > -1) {
-        passwordGroup.splice(index, 1);
-        return passwordGroup;
-    }
-}
-
-function addToPasswordGroup(passwordGroup, key) {
-    passwordGroup.push(key);
-    return passwordGroup;
 }
 
 /**
  * End table render group by website function
  */
+
+
+/**
+ * Old Logic for username similarity in group by passwords table
+*/
+
+//sort result as per password count
+/*result = result.sort(function (a, b) {
+ return a.password_count - b.password_count;
+ });
+
+ // Re-order usernames as per maximum similarity
+ for (var i = 0; i < result.length; i++) {
+ var distanceGroups = [];
+ var similarityIndex = {
+ startIndex: 0,
+ endIndex: 0
+ };
+ for (var j = 0; j < result[i].transformed_username.length; j++) {
+ var current_username = result[i].transformed_username[j];
+ var next_username = result[i].transformed_username[j + 1];
+ if (next_username != undefined && current_username != undefined) {
+ current_username = result[i].transformed_username[j].split("@")[0];
+ next_username = result[i].transformed_username[j + 1].split("@")[0];
+ var distArray = levenshteinenator(current_username, next_username);
+ var dist = distArray[distArray.length - 1][distArray[distArray.length - 1].length - 1];
+ if (dist <= 5) {
+ similarityIndex.endIndex = j + 1;
+ } else {
+ distanceGroups.push(similarityIndex);
+ similarityIndex = {
+ startIndex: j + 1,
+ endIndex: j + 1
+ };
+ }
+ } else {
+ similarityIndex.endIndex = j;
+ distanceGroups.push(similarityIndex);
+ }
+ }
+ console.log(distanceGroups);
+ var tempResultTransformedUsernames = {
+ url: [],
+ website_importance: [],
+ reset_count: [],
+ transformed_username: [],
+ auth_status: []
+ };
+ while (distanceGroups.length > 0) {
+ var maxSimilarityGroup = {
+ startIndex: 0,
+ endIndex: 0
+ };
+ var maxSimilarityGroupIndex;
+ for (j = 0; j < distanceGroups.length; j++) {
+ var maxSimilarity = maxSimilarityGroup.endIndex - maxSimilarityGroup.startIndex;
+ if ((distanceGroups[j].endIndex - distanceGroups[j].startIndex) >= maxSimilarity) {
+ maxSimilarityGroup = distanceGroups[j];
+ maxSimilarityGroupIndex = j;
+ }
+ }
+ distanceGroups.splice(maxSimilarityGroupIndex, 1);
+ for (j = maxSimilarityGroup.startIndex; j <= maxSimilarityGroup.endIndex; j++) {
+ tempResultTransformedUsernames.url.push(result[i].url[j]);
+ tempResultTransformedUsernames.website_importance.push(result[i].website_importance[j]);
+ tempResultTransformedUsernames.reset_count.push(result[i].reset_count[j]);
+ tempResultTransformedUsernames.transformed_username.push(result[i].transformed_username[j]);
+ tempResultTransformedUsernames.auth_status.push(result[i].auth_status[j]);
+ }
+ }
+ result[i].url = tempResultTransformedUsernames.url;
+ result[i].website_importance = tempResultTransformedUsernames.website_importance;
+ result[i].reset_count = tempResultTransformedUsernames.reset_count;
+ result[i].transformed_username = tempResultTransformedUsernames.transformed_username;
+ result[i].auth_status = tempResultTransformedUsernames.auth_status;
+ }*/
