@@ -24,6 +24,7 @@ function getParticipantInfo(participant_id) {
             var transformed_passwords = resultGroupByPassword(data);
             console.log(transformed_passwords);
             buildTable(passwordTable, transformed_passwords).done(function () {
+                groupByPasswordTableFlag = true;
                 $("#passwords-table-group-password").DataTable();
             });
         }
@@ -185,7 +186,7 @@ function getDiscussion(participant_id) {
 function buildTable(passwordTable, data) {
     var d = $.Deferred();
     for (var i = data.length - 1; i >= 0; i--) {
-        newPasswordRow(passwordTable, data[i]);
+        newPasswordRow(passwordTable, data[i], i);
     }
     return d.resolve();
 }
