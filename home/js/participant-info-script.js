@@ -7,6 +7,7 @@ var passwordDistanceAvg = [];
 var passwordGroupings = [];
 
 var participant_info;
+var participant_info_successful_cred;
 
 var groupByPasswordTableFlag = false;
 var groupByWebsiteTableFlag = false;
@@ -19,6 +20,7 @@ var passwordsModified = false;
 function getParticipantInfo(participant_id) {
     var responseSuccess = function (data) {
         participant_info = data;
+        participant_info_successful_cred = get_successful_cred(participant_info);
         if (data.length > 0) {
             var passwordTable = $("#password-data-group-password");
             var transformed_passwords = resultGroupByPassword(data);
@@ -183,6 +185,17 @@ function getDiscussion(participant_id) {
  * End Ajax Calls for participant data
  */
 
+
+function get_successful_cred(allCred) {
+    var successfulCred = [];
+    allCred.forEach(function(cred) {
+        if(cred.auth_status) {
+            successfulCred.push(cred);
+        }
+    });
+    return successfulCred;
+}
+
 function buildTable(passwordTable, data) {
     var d = $.Deferred();
     for (var i = data.length - 1; i >= 0; i--) {
@@ -240,6 +253,28 @@ $(function () {
     var formatted_participant_id = participant_id.match(numberPattern)[0];
     $("#participant-id").html(formatted_participant_id);
 
+    var authSwitch = document.querySelector("#auth-switch");
+    var switchery = new Switchery(authSwitch, {size: 'small', jackColor: '#eeeeee', jackSecondaryColor: '#eeeeee'});
+
+    /* "Auth Successful?" switch event handlers */
+    authSwitch.onchange = function() {
+        if(authSwitch.checked) {
+            var passwordTable = $("#password-data-group-password");
+            clearElementData(passwordTable);
+            var transformed_passwords = resultGroupByPassword(participant_info_successful_cred);
+            buildTable(passwordTable, transformed_passwords).done(function () {
+                groupByPasswordTableFlag = false;
+            });
+        } else {
+            var passwordTable = $("#password-data-group-password");
+            clearElementData(passwordTable);
+            var transformed_passwords = resultGroupByPassword(participant_info);
+            buildTable(passwordTable, transformed_passwords).done(function () {
+                groupByPasswordTableFlag = true;
+            });
+        }
+    };
+
     /* Get Participant Info */
     getParticipantInfo(formatted_participant_id);
 
@@ -265,6 +300,12 @@ $(function () {
     });
 
     $("#group-password-btn").click(function() {
+        // reset auth successful switch
+        var authSwitch = document.querySelector('#auth-switch');
+        if(authSwitch.checked) {
+            authSwitch.click();
+        }
+
         if(groupByPasswordTableFlag) {
             hideAllTables();
             $("#passwords-table-group-password").css("display", "block");
@@ -272,17 +313,17 @@ $(function () {
             $(this).addClass("active");
             return;
         }
-        clearElementData($("#password-data-group-password"));
+        var passwordTable = $("#password-data-group-password");
+        clearElementData(passwordTable);
         hideAllTables();
-        $("#passwords-table-group-password").css("display", "block");
+        passwordTable.css("display", "block");
         disableAllButtons();
         $(this).addClass("active");
 
         var transformed_passwords = resultGroupByPassword(participant_info);
-        for (var i = transformed_passwords.length - 1; i >= 0; i--) {
-            newPasswordRow($("#password-data-group-password"), transformed_passwords[i]);
-        }
-        groupByPasswordTableFlag = true;
+        buildTable(passwordTable, transformed_passwords).done(function () {
+            groupByPasswordTableFlag = true;
+        });
     });
 
     $("#pre-study-questionnaire-btn").click(function() {
