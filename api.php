@@ -211,7 +211,8 @@ if(isset($_GET['get-websites'])) {
     preg_match_all('/\d+/', $pwset_id, $matches);
     $pwset_id = $matches[0][0];
     $query = "SELECT websites.website_text as website_text, user_websites.website_probability as website_important,
-              websites.probability as avg_importance, user_websites.date as date, (SELECT COUNT(*) FROM transformed_credentials
+              user_websites.website_frequency as website_frequency, websites.probability as avg_importance,
+              user_websites.date as date, (SELECT COUNT(*) FROM transformed_credentials
               WHERE user_website_id = user_websites.user_website_id) as total_tries, (SELECT COUNT(*) FROM transformed_credentials
               WHERE user_website_id = user_websites.user_website_id AND auth_status = 1) as auth_status FROM user_websites INNER JOIN websites ON
               user_websites.website_id = websites.website_id WHERE user_websites.pwset_id = ". trim($pwset_id);
@@ -220,6 +221,7 @@ if(isset($_GET['get-websites'])) {
         $temp_result = Array(
             'website_text' => $response_row['website_text'],
             'website_important' => intval($response_row['website_important'])? true: false,
+            'website_frequency' => intval($response_row['website_frequency'])?true: false,
             'avg_importance' => floatval($response_row['avg_importance']),
             'date' => $response_row['date'],
             'total_tries' => intval($response_row['total_tries']),

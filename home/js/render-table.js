@@ -113,7 +113,7 @@ function displayPasswordSegments(passwordSegments) {
 function newPreStudyRow(table, instance) {
     var addRow = "<tr>" +
         "<td>" + instance.question + "</td>" +
-        "<td>" + get5PointDescription(instance.response) + "</td></tr>";
+        "<td>" + instance.response + "</td></tr>";
 
     table.append(addRow);
 }
@@ -154,11 +154,13 @@ function newPostStudyRow(table, instance, website) {
  */
 function newShowWebsiteRow(table, instance) {
     instance.website_important = instance.website_important? "Yes": "No";
+    instance.website_frequency = instance.website_frequency? "Yes": "No";
     instance.date = instance.date? instance.date: "";
     instance.auth_status = instance.auth_status? "Yes": "No";
     var addRow = "<tr>" +
         "<td>" + instance.website_text + "</td>" +
         "<td>" + instance.website_important + "</td>" +
+        "<td>" + instance.website_frequency + "</td>" +
         "<td>" + instance.avg_importance + "</td>" +
         "<td>" + instance.date + "</td>" +
         "<td>" + instance.total_tries + "</td>" +
