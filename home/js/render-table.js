@@ -110,10 +110,15 @@ function displayPasswordSegments(passwordSegments) {
 /**
  * Start creation of new row for pre-study questionnaire table
  */
-function newPreStudyRow(table, instance) {
+function newPreStudyRow(table, instance, objective) {
+    if(objective) {
+        var response = get5PointDescription(instance.response);
+    } else {
+        var response = instance.response;
+    }
     var addRow = "<tr>" +
         "<td>" + instance.question + "</td>" +
-        "<td>" + instance.response + "</td></tr>";
+        "<td>" + response + "</td></tr>";
 
     table.append(addRow);
 }

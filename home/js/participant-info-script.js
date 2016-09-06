@@ -72,7 +72,7 @@ function getCurrentPracticeQuestionnaire(participant_id) {
         if (data.length > 0) {
             var preStudyTable = $("#pre-study-data");
             for(var i = 0; i < data.length; i++) {
-                newPreStudyRow(preStudyTable, data[i]);
+                newPreStudyRow(preStudyTable, data[i], true);
             }
         }
     };
@@ -94,7 +94,7 @@ function getRiskPerceptionQuestionnaire(participant_id) {
         if (data.length > 0) {
             var preStudyTable = $("#pre-study-data");
             for(var i = 0; i < data.length; i++) {
-                newPreStudyRow(preStudyTable, data[i]);
+                newPreStudyRow(preStudyTable, data[i], true);
             }
         }
     };
