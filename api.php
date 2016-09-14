@@ -61,6 +61,9 @@ if(isset($_GET['participant-info'])) {
             trim($pwset_id) . " ORDER BY user_websites.website_id";
     $result = mysqli_query($dbc, $query);
     while($response_row = mysqli_fetch_array($result)) {
+        if($response_row['username_text'] == null) {
+            $response_row['username_text'] = "";
+        }
         $temp_result = Array(
             'website_text' => $response_row['website_text'],
             'website_probability' => intval($response_row['website_probability']),
