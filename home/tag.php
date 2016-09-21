@@ -37,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $qid = $_GET['q'];
 }
 
-$iq = "select * from study_responses sr left join study_questions sq on sr.question_id = sq.question_id where pwset_id>=213 and sr.question_id=$qid order by pwset_id";
+$iq = "select pwset_id, question, response_sub, (select code from study_responses_code where pwset_id = sr.pwset_id and
+       question_id = sr.question_id) code from study_responses sr left join study_questions sq on sr.question_id = sq.question_id where pwset_id>=213 and sr.question_id=$qid order by pwset_id";
 
 $result = $mysqli->query($iq);
 
