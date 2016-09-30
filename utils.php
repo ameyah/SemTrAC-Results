@@ -16,3 +16,11 @@ function utf8ize($d) {
     }
     return $d;
 }
+
+function generate_grammar_arr($grammar_text) {
+    preg_match_all('/\([a-z]+[0-9]*\)/i', $grammar_text, $grammar_arr);
+    for($i = 0; $i < count($grammar_arr); $i++) {
+        $grammar_arr[$i] = preg_replace("/[^a-zA-Z0-9]+/", "", $grammar_arr[$i]);
+    }
+    return $grammar_arr;
+}
